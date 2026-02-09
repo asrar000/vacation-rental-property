@@ -7,9 +7,8 @@ from rest_framework.response import Response
 from .models import Property, Location
 from .serializers import PropertySerializer, LocationSerializer
 
-# UPDATED: 5 items per page (changed from 6)
 class PropertyPagination(PageNumberPagination):
-    page_size = 5  # CHANGED FROM 6 TO 5
+    page_size = 5
     page_size_query_param = 'page_size'
     max_page_size = 100
 
@@ -22,36 +21,45 @@ class PropertyViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        search = self.request.query_params.get('search', None)
+        location = self.request.query_params.get('location', None)
         
-        if search:
-            # UPDATED: Search only by property name
+        if location:
+            # UPDATED: Search by location (city, state, or location name)
             queryset = queryset.filter(
-                Q(property_name__icontains=search)
+                Q(location__location_city__icontains=location) |
+                Q(location__location_state__icontains=location) |
+                Q(location__location_name__icontains=location)
             )
         
         return queryset
 
-# NEW: Property name autocomplete API - Returns only 5 suggestions
+# UPDATED: Location autocomplete API based on property locations - Returns only 5 suggestions
 @api_view(['GET'])
-def property_autocomplete(request):
+def location_autocomplete(request):
     query = request.GET.get('q', '')
     
     if len(query) < 2:
         return Response([])
     
-    # Search only by property name and limit to 5 results
-    properties = Property.objects.filter(
-        property_name__icontains=query
+    # Get unique locations that have properties, matching the search query
+    locations = Location.objects.filter(
+        Q(location_city__icontains=query) |
+        Q(location_state__icontains=query) |
+        Q(location_name__icontains=query)
     ).distinct()[:5]  # ONLY 5 SUGGESTIONS
     
     suggestions = []
-    for prop in properties:
+    for loc in locations:
+        # Count how many properties are in this location
+        property_count = loc.properties.count()
         suggestions.append({
-            'id': prop.property_id,
-            'name': prop.property_name,
-            'type': prop.property_type,
-            'location': f"{prop.location.location_city}, {prop.location.location_state}"
+            'id': loc.location_id,
+            'name': loc.location_name,
+            'city': loc.location_city,
+            'state': loc.location_state,
+            'display': f"{loc.location_city}, {loc.location_state}",
+            'full_display': f"{loc.location_name} - {loc.location_city}, {loc.location_state}",
+            'property_count': property_count
         })
     
     return Response(suggestions)

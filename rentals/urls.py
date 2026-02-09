@@ -9,6 +9,6 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('property/<str:property_id>/', views.property_detail, name='property_detail'),
     path('api/', include(router.urls)),
-    # NEW: Property name autocomplete endpoint
-    path('api/property-autocomplete/', views.property_autocomplete, name='property_autocomplete'),
+    # UPDATED: Location autocomplete endpoint (changed from property-autocomplete)
+    path('api/location-autocomplete/', views.location_autocomplete, name='location_autocomplete'),
 ]

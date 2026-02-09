@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="search-box">
-    <!-- UPDATED: Changed placeholder to indicate property name search -->
-    <input type="text" id="property-search" placeholder="Search properties by name..." autocomplete="off">
+    <!-- UPDATED: Changed placeholder to indicate location search -->
+    <input type="text" id="location-search" placeholder="Search by location (city, state, or area name)..." autocomplete="off">
     <div id="autocomplete-list" class="autocomplete-items"></div>
 </div>
 
@@ -20,14 +20,14 @@
     let searchQuery = '';
     let autocompleteTimeout = null;
 
-    // UPDATED: Changed parameter from 'location' to 'search'
+    // UPDATED: Changed parameter back to 'location'
     function loadProperties(page = 1) {
         document.getElementById('loading').style.display = 'block';
         document.getElementById('property-list').innerHTML = '';
         
         let url = `/api/properties/?page=${page}`;
         if (searchQuery) {
-            url += `&search=${encodeURIComponent(searchQuery)}`;  // CHANGED: location → search
+            url += `&location=${encodeURIComponent(searchQuery)}`;  // CHANGED: search → location
         }
         
         fetch(url)
@@ -48,7 +48,7 @@
         const propertyList = document.getElementById('property-list');
         
         if (properties.length === 0) {
-            propertyList.innerHTML = '<div class="no-results"><h2>No properties found</h2><p>Try a different search term</p></div>';
+            propertyList.innerHTML = '<div class="no-results"><h2>No properties found</h2><p>Try a different location</p></div>';
             return;
         }
         
@@ -108,8 +108,8 @@
         }
     }
 
-    // UPDATED: Property name autocomplete using AJAX API
-    const searchInput = document.getElementById('property-search');
+    // UPDATED: Location autocomplete using AJAX API
+    const searchInput = document.getElementById('location-search');
     const autocompleteList = document.getElementById('autocomplete-list');
 
     searchInput.addEventListener('input', function() {
@@ -123,28 +123,28 @@
             return;
         }
         
-        // AJAX call to NEW property autocomplete API
+        // AJAX call to location autocomplete API
         autocompleteTimeout = setTimeout(() => {
-            fetch(`/api/property-autocomplete/?q=${encodeURIComponent(query)}`)
+            fetch(`/api/location-autocomplete/?q=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
                     autocompleteList.innerHTML = '';
                     
                     if (data.length > 0) {
-                        // Show maximum 5 suggestions
+                        // Show maximum 5 location suggestions
                         data.forEach(item => {
                             const div = document.createElement('div');
                             div.innerHTML = `
-                                <strong>${item.name}</strong>
+                                <strong>${item.full_display}</strong>
                                 <div class="autocomplete-item-details">
-                                    ${item.type} • ${item.location}
+                                    ${item.property_count} ${item.property_count === 1 ? 'property' : 'properties'} available
                                 </div>
                             `;
                             div.addEventListener('click', () => {
-                                searchInput.value = item.name;
+                                searchInput.value = item.display;
                                 autocompleteList.innerHTML = '';
                                 autocompleteList.style.display = 'none';
-                                performSearch(item.name);
+                                performSearch(item.display);
                             });
                             autocompleteList.appendChild(div);
                         });
