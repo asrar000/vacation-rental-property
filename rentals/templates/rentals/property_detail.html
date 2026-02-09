@@ -1,0 +1,203 @@
+{% extends 'rentals/base.html' %}
+
+{% block title %}{{ property.property_name }} - Vacation Rentals{% endblock %}
+
+{% block extra_css %}
+<style>
+    .property-detail {
+        background: #fff;
+        padding: 30px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .gallery-container {
+        position: relative;
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto 30px;
+        overflow: hidden;
+        border-radius: 5px;
+    }
+    .gallery-image {
+        width: 100%;
+        height: 500px;
+        object-fit: cover;
+        display: none;
+    }
+    .gallery-image.active {
+        display: block;
+    }
+    .gallery-controls {
+        position: absolute;
+        top: 50%;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        transform: translateY(-50%);
+    }
+    .gallery-btn {
+        background: rgba(0,0,0,0.5);
+        color: white;
+        border: none;
+        padding: 15px 20px;
+        cursor: pointer;
+        font-size: 20px;
+        transition: background 0.3s;
+    }
+    .gallery-btn:hover {
+        background: rgba(0,0,0,0.8);
+    }
+    .gallery-indicators {
+        text-align: center;
+        margin-top: 10px;
+    }
+    .indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ddd;
+        margin: 0 5px;
+        cursor: pointer;
+    }
+    .indicator.active {
+        background: #333;
+    }
+    .property-info-section {
+        margin-bottom: 20px;
+    }
+    .property-info-section h2 {
+        margin-bottom: 10px;
+        color: #333;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+    }
+    .info-item {
+        padding: 15px;
+        background: #f9f9f9;
+        border-radius: 4px;
+    }
+    .info-item strong {
+        display: block;
+        margin-bottom: 5px;
+        color: #666;
+    }
+    .back-link {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 10px 20px;
+        background: #333;
+        color: white;
+        border-radius: 4px;
+    }
+    .back-link:hover {
+        background: #555;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/" class="back-link">← Back to Properties</a>
+
+<div class="property-detail">
+    <h1>{{ property.property_name }}</h1>
+    
+    {% if property.images.all %}
+    <div class="gallery-container">
+        {% for image in property.images.all %}
+        <img src="{{ image.image_url }}" 
+             alt="{{ image.image_caption }}" 
+             class="gallery-image {% if forloop.first %}active{% endif %}"
+             data-index="{{ forloop.counter0 }}">
+        {% endfor %}
+        
+        {% if property.images.count > 1 %}
+        <div class="gallery-controls">
+            <button class="gallery-btn" onclick="changeImage(-1)">❮</button>
+            <button class="gallery-btn" onclick="changeImage(1)">❯</button>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if property.images.count > 1 %}
+    <div class="gallery-indicators">
+        {% for image in property.images.all %}
+        <span class="indicator {% if forloop.first %}active{% endif %}" 
+              onclick="showImage({{ forloop.counter0 }})"></span>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endif %}
+    
+    <div class="property-info-section">
+        <h2>Property Details</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>Type</strong>
+                {{ property.property_type }}
+            </div>
+            <div class="info-item">
+                <strong>Bedrooms</strong>
+                {{ property.bedrooms }}
+            </div>
+            <div class="info-item">
+                <strong>Bathrooms</strong>
+                {{ property.bathrooms }}
+            </div>
+            <div class="info-item">
+                <strong>Max Guests</strong>
+                {{ property.max_guests }}
+            </div>
+            <div class="info-item">
+                <strong>Price per Night</strong>
+                ${{ property.price_per_night }}
+            </div>
+        </div>
+    </div>
+    
+    <div class="property-info-section">
+        <h2>Description</h2>
+        <p>{{ property.property_description }}</p>
+    </div>
+    
+    <div class="property-info-section">
+        <h2>Location</h2>
+        <p><strong>{{ property.location.location_name }}</strong></p>
+        <p>{{ property.location.location_city }}, {{ property.location.location_state }}, {{ property.location.location_country }} {{ property.location.location_zip }}</p>
+        <p>{{ property.location.location_description }}</p>
+    </div>
+</div>
+
+<script>
+    let currentImageIndex = 0;
+    const images = document.querySelectorAll('.gallery-image');
+    const indicators = document.querySelectorAll('.indicator');
+    const totalImages = images.length;
+
+    function showImage(index) {
+        images.forEach(img => img.classList.remove('active'));
+        indicators.forEach(ind => ind.classList.remove('active'));
+        
+        currentImageIndex = index;
+        if (currentImageIndex >= totalImages) currentImageIndex = 0;
+        if (currentImageIndex < 0) currentImageIndex = totalImages - 1;
+        
+        images[currentImageIndex].classList.add('active');
+        indicators[currentImageIndex].classList.add('active');
+    }
+
+    function changeImage(direction) {
+        showImage(currentImageIndex + direction);
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') changeImage(-1);
+        if (e.key === 'ArrowRight') changeImage(1);
+    });
+</script>
+{% endblock %}

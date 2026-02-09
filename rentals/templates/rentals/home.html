@@ -1,0 +1,188 @@
+{% extends 'rentals/base.html' %}
+
+{% block content %}
+<div class="search-box">
+    <!-- UPDATED: Changed placeholder to indicate property name search -->
+    <input type="text" id="property-search" placeholder="Search properties by name..." autocomplete="off">
+    <div id="autocomplete-list" class="autocomplete-items"></div>
+</div>
+
+<div id="property-list" class="property-grid"></div>
+
+<div id="loading" class="loading" style="display: none;">Loading properties...</div>
+
+<div class="pagination" id="pagination"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentPage = 1;
+    let searchQuery = '';
+    let autocompleteTimeout = null;
+
+    // UPDATED: Changed parameter from 'location' to 'search'
+    function loadProperties(page = 1) {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('property-list').innerHTML = '';
+        
+        let url = `/api/properties/?page=${page}`;
+        if (searchQuery) {
+            url += `&search=${encodeURIComponent(searchQuery)}`;  // CHANGED: location → search
+        }
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                displayProperties(data.results);
+                setupPagination(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('loading').style.display = 'none';
+            });
+    }
+
+    // Display properties
+    function displayProperties(properties) {
+        const propertyList = document.getElementById('property-list');
+        
+        if (properties.length === 0) {
+            propertyList.innerHTML = '<div class="no-results"><h2>No properties found</h2><p>Try a different search term</p></div>';
+            return;
+        }
+        
+        properties.forEach(property => {
+            const imageUrl = property.images.length > 0 ? property.images[0].image_url : '';
+            
+            const card = document.createElement('a');
+            card.href = `/property/${property.property_id}/`;
+            card.className = 'property-card';
+            card.innerHTML = `
+                ${imageUrl ? `<img src="${imageUrl}" alt="${property.property_name}">` : ''}
+                <div class="property-info">
+                    <h3>${property.property_name}</h3>
+                    <p>${property.property_type} • ${property.bedrooms} bed • ${property.bathrooms} bath</p>
+                    <p>${property.location_city}, ${property.location_name}</p>
+                    <p class="price">$${property.price_per_night}/night</p>
+                </div>
+            `;
+            propertyList.appendChild(card);
+        });
+    }
+
+    // Setup pagination
+    function setupPagination(data) {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+        
+        if (!data.previous && !data.next) {
+            return;
+        }
+        
+        if (data.previous) {
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = 'Previous';
+            prevBtn.onclick = () => {
+                currentPage--;
+                loadProperties(currentPage);
+                window.scrollTo(0, 0);
+            };
+            pagination.appendChild(prevBtn);
+        }
+        
+        const pageInfo = document.createElement('span');
+        pageInfo.textContent = ` Page ${currentPage} `;
+        pageInfo.style.margin = '0 10px';
+        pagination.appendChild(pageInfo);
+        
+        if (data.next) {
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Next';
+            nextBtn.onclick = () => {
+                currentPage++;
+                loadProperties(currentPage);
+                window.scrollTo(0, 0);
+            };
+            pagination.appendChild(nextBtn);
+        }
+    }
+
+    // UPDATED: Property name autocomplete using AJAX API
+    const searchInput = document.getElementById('property-search');
+    const autocompleteList = document.getElementById('autocomplete-list');
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value;
+        
+        clearTimeout(autocompleteTimeout);
+        
+        if (query.length < 2) {
+            autocompleteList.innerHTML = '';
+            autocompleteList.style.display = 'none';
+            return;
+        }
+        
+        // AJAX call to NEW property autocomplete API
+        autocompleteTimeout = setTimeout(() => {
+            fetch(`/api/property-autocomplete/?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    autocompleteList.innerHTML = '';
+                    
+                    if (data.length > 0) {
+                        // Show maximum 5 suggestions
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.innerHTML = `
+                                <strong>${item.name}</strong>
+                                <div class="autocomplete-item-details">
+                                    ${item.type} • ${item.location}
+                                </div>
+                            `;
+                            div.addEventListener('click', () => {
+                                searchInput.value = item.name;
+                                autocompleteList.innerHTML = '';
+                                autocompleteList.style.display = 'none';
+                                performSearch(item.name);
+                            });
+                            autocompleteList.appendChild(div);
+                        });
+                        autocompleteList.style.display = 'block';
+                    } else {
+                        autocompleteList.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Autocomplete error:', error);
+                    autocompleteList.style.display = 'none';
+                });
+        }, 300); // 300ms debounce
+    });
+
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            autocompleteList.innerHTML = '';
+            autocompleteList.style.display = 'none';
+            performSearch(this.value);
+        }
+    });
+
+    // Close autocomplete when clicking outside
+    document.addEventListener('click', function(e) {
+        if (e.target !== searchInput) {
+            autocompleteList.innerHTML = '';
+            autocompleteList.style.display = 'none';
+        }
+    });
+
+    function performSearch(query) {
+        searchQuery = query;
+        currentPage = 1;
+        loadProperties(currentPage);
+    }
+
+    // Initial load
+    loadProperties();
+</script>
+{% endblock %}
