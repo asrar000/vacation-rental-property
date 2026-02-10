@@ -54,7 +54,15 @@ class Property(models.Model):
 class PropertyImage(models.Model):
     image_id = models.CharField(max_length=20, unique=True)
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='images')
-    image_url = models.URLField(max_length=500)
+    
+    # UPDATED: Added ImageField for file uploads
+    image_file = models.ImageField(upload_to='property_images/', blank=True, null=True, 
+                                    help_text="Upload an image file")
+    
+    # Keep URL field for external images
+    image_url = models.URLField(max_length=500, blank=True, null=True,
+                                 help_text="Or provide an external image URL")
+    
     image_caption = models.CharField(max_length=300, blank=True)
     image_order = models.IntegerField(default=0)
 
@@ -63,3 +71,18 @@ class PropertyImage(models.Model):
 
     class Meta:
         ordering = ['image_order', 'image_id']
+    
+    # UPDATED: Method to get the image URL (uploaded or external)
+    def get_image_url(self):
+        """Returns the image URL - either from uploaded file or external URL"""
+        if self.image_file:
+            return self.image_file.url
+        return self.image_url or ''
+    
+    def save(self, *args, **kwargs):
+        """Auto-generate image_id if not provided"""
+        if not self.image_id:
+            # Generate a unique image_id
+            import uuid
+            self.image_id = f"IMG{uuid.uuid4().hex[:6].upper()}"
+        super().save(*args, **kwargs)

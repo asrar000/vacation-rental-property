@@ -1,84 +1,104 @@
 # Vacation Rental Django Project
 
-A Django web application for managing vacation rental properties with location-based search, autocomplete, and admin panel features.
+A Django web application for managing vacation rental properties with location-based search, AJAX autocomplete, image uploads, and admin panel features.
 
-## Features
+## 🌟 Features
 
-- Property listing with pagination (5 properties per page)
-- Location-based search with AJAX autocomplete (shows 5 suggestions)
-- Admin panel with inline image management
-- Image gallery slider for each property
-- RESTful API with Django REST Framework
-- Media root configuration for file uploads
-- Simple, clean frontend design
+- **Property Listing** with pagination (5 properties per page)
+- **Location-based Search** with AJAX autocomplete (shows 5 suggestions)
+- **Image Upload & Management** - Upload images directly or use external URLs
+- **Image Gallery** with slider for each property (left/right navigation + keyboard support)
+- **Admin Panel** with inline image management and preview
+- **RESTful API** with Django REST Framework
+- **Media Storage** configured for file uploads
+- **Simple, Clean Frontend** - No frameworks, vanilla JavaScript
 
-## Setup Instructions
+## 📋 Prerequisites
 
-### Prerequisites
 - Python 3.8+
 - pip
-- virtualenv (optional but recommended)
+- virtualenv (recommended)
 
-### Installation
+## 🚀 Installation & Setup
 
-1. **Extract/Clone the Project:**
-   ```bash
-   cd vacation_rental
-   ```
+### 1. Clone or Extract the Project
 
-2. **Activate Virtual Environment:**
-   ```bash
-   source venv/bin/activate
-   ```
+```bash
+cd vacation_rental
+```
 
-3. **Install Dependencies (if not already installed):**
-   ```bash
-   pip install django djangorestframework django-cors-headers pillow
-   ```
+### 2. Create and Activate Virtual Environment
 
-## Running the Project
+```bash
+# Create virtual environment
+python3 -m venv venv
 
-1. **Create Migrations (first time only):**
-   ```bash
-   python manage.py makemigrations
-   ```
+# Activate virtual environment
+# On Linux/Mac:
+source venv/bin/activate
 
-2. **Run Migrations:**
-   ```bash
-   python manage.py migrate
-   ```
+# On Windows:
+venv\Scripts\activate
+```
 
-3. **Create Superuser:**
-   ```bash
-   python manage.py createsuperuser
-   ```
-   Enter username, email, and password when prompted.
+### 3. Install Dependencies
 
-4. **Import CSV Data:**
-   ```bash
-   python manage.py import_csv path/to/vacation_rental_data.csv
-   ```
-   Example:
-   ```bash
-   python manage.py import_csv ../vacation_rental_data.csv
-   ```
+```bash
+pip install -r requirements.txt
+```
 
-5. **Run Development Server:**
-   ```bash
-   python manage.py runserver
-   ```
+This will install:
+- Django (>=5.0)
+- Django REST Framework
+- django-cors-headers
+- Pillow (for image processing)
 
-6. **Access the Application:**
-   - Homepage: http://127.0.0.1:8000/
-   - Admin Panel: http://127.0.0.1:8000/admin/
-   - API: http://127.0.0.1:8000/api/properties/
+### 4. Run Migrations
 
-## Project Structure
+```bash
+# Create migrations
+python manage.py makemigrations rentals
+
+# Apply migrations to database
+python manage.py migrate
+```
+
+### 5. Create Superuser
+
+```bash
+python manage.py createsuperuser
+```
+
+Enter username, email, and password when prompted.
+
+### 6. Import CSV Data (Optional)
+
+```bash
+# If you have the vacation_rental_data.csv file
+python manage.py import_csv path/to/vacation_rental_data.csv
+
+# Example:
+python manage.py import_csv ../vacation_rental_data.csv
+```
+
+### 7. Run Development Server
+
+```bash
+python manage.py runserver
+```
+
+### 8. Access the Application
+
+- **Homepage**: http://127.0.0.1:8000/
+- **Admin Panel**: http://127.0.0.1:8000/admin/
+- **API**: http://127.0.0.1:8000/api/properties/
+
+## 📁 Project Structure
 
 ```
 vacation_rental/
 ├── config/                     # Project settings
-│   ├── settings.py            # Main settings (MEDIA_ROOT configured)
+│   ├── settings.py            # Main settings (MEDIA_ROOT, REST_FRAMEWORK)
 │   ├── urls.py                # Root URL configuration
 │   └── wsgi.py
 ├── rentals/                    # Main app
@@ -95,69 +115,97 @@ vacation_rental/
 │   ├── serializers.py         # DRF serializers
 │   ├── admin.py               # Admin with inline image management
 │   └── urls.py                # App URL configuration
-├── media/                      # User uploaded files (MEDIA_ROOT)
-├── staticfiles/                # Static files
+├── media/                      # User uploaded images (auto-created)
+│   └── property_images/       # Property images storage
+├── staticfiles/                # Static files (auto-created)
 ├── venv/                       # Virtual environment
+├── .gitignore                  # Git ignore file
+├── requirements.txt            # Python dependencies
 ├── db.sqlite3                  # SQLite database
 ├── manage.py                   # Django management script
 └── README.md                   # This file
 ```
 
-## Models
+## 🗄️ Database Models
 
-### Location
-- `location_id` (Primary Key)
-- `location_name`
-- `location_city`
-- `location_state`
-- `location_country`
-- `location_zip`
-- `location_latitude`
-- `location_longitude`
-- `location_description`
+### Location Model
+```python
+- location_id (Primary Key, CharField)
+- location_name (CharField)
+- location_city (CharField)
+- location_state (CharField)
+- location_country (CharField)
+- location_zip (CharField)
+- location_latitude (DecimalField)
+- location_longitude (DecimalField)
+- location_description (TextField)
+```
 
-### Property
-- `property_id` (Primary Key)
-- `property_name`
-- `property_type` (Villa, Condo, Chalet, etc.)
-- `bedrooms`
-- `bathrooms`
-- `max_guests`
-- `price_per_night`
-- `property_description`
-- `location` (Foreign Key to Location)
-- `created_at`
-- `updated_at`
+### Property Model
+```python
+- property_id (Primary Key, CharField)
+- property_name (CharField)
+- property_type (CharField - choices)
+- bedrooms (IntegerField)
+- bathrooms (DecimalField)
+- max_guests (IntegerField)
+- price_per_night (DecimalField)
+- property_description (TextField)
+- location (ForeignKey to Location)
+- created_at (DateTimeField)
+- updated_at (DateTimeField)
+```
+
+**Property Types:** Villa, Condo, Chalet, Cabin, Loft, Penthouse, House, Townhouse, Suite
 
 **Relationship:** One Location can have many Properties
 
-### PropertyImage
-- `image_id` (Unique)
-- `property` (Foreign Key to Property)
-- `image_url`
-- `image_caption`
-- `image_order`
+### PropertyImage Model
+```python
+- image_id (CharField, Unique)
+- property (ForeignKey to Property)
+- image_file (ImageField) - For uploaded images
+- image_url (URLField) - For external image URLs
+- image_caption (CharField)
+- image_order (IntegerField)
+```
 
 **Relationship:** One Property can have many PropertyImages
 
-## API Endpoints
+**Image Storage:** 
+- Uploaded images: `media/property_images/`
+- Priority: If both `image_file` and `image_url` exist, uploaded file is used
 
-### Properties
-- `GET /api/properties/` - List all properties (paginated, 5 per page)
-- `GET /api/properties/?page=2` - Get specific page
-- `GET /api/properties/?location=<query>` - Search properties by location
-- `GET /api/properties/<property_id>/` - Get single property details
+## 🔌 API Endpoints
 
-### Autocomplete
-- `GET /api/location-autocomplete/?q=<query>` - Get location suggestions (max 5)
-  - Searches: city, state, location name
-  - Returns: location details with property count
+### Properties API
 
-**Example:**
+**List all properties (paginated)**
+```
+GET /api/properties/
+GET /api/properties/?page=2
+```
+
+**Search by location**
+```
+GET /api/properties/?location=miami
+GET /api/properties/?location=florida
+```
+
+**Get single property**
+```
+GET /api/properties/<property_id>/
+```
+
+### Autocomplete API
+
+**Location autocomplete (max 5 suggestions)**
 ```
 GET /api/location-autocomplete/?q=miami
+```
 
-Response:
+**Response Example:**
+```json
 [
   {
     "id": "LOC001",
@@ -171,144 +219,192 @@ Response:
 ]
 ```
 
-## Admin Features
+**Searches:** City name, State name, Location name
 
-### Admin Panel (`/admin/`)
+## 🎨 Admin Panel Features
 
-**Property Management:**
-- Inline image management (add/edit/delete images on property page)
-- Add multiple images per property
-- Set image order for gallery display
-- Search by property name, location
-- Filter by property type, bedrooms, city
-- View created/updated timestamps
+### Access Admin Panel
+```
+URL: http://127.0.0.1:8000/admin/
+Login: Use the superuser credentials you created
+```
 
-**Location Management:**
-- View all locations
-- Filter by country, state
-- Search by name, city
+### Property Management
+- ✅ **Inline Image Management** - Add/edit images directly on property page
+- ✅ **Image Upload** - Upload images from your computer
+- ✅ **External URLs** - Or use external image URLs
+- ✅ **Image Preview** - See thumbnails and full previews
+- ✅ **Image Ordering** - Set display order for gallery
+- ✅ **Auto Image ID** - Automatically generates unique IDs
+- ✅ **Image Count** - Shows number of images per property
+- ✅ **Bulk Operations** - Edit multiple properties at once
+- ✅ **Search & Filter** - Find properties quickly
 
-**Image Management:**
-- Standalone image management
-- Filter by property
-- Search by image ID or caption
+### Adding Images to Properties
 
-### Inline Model Features
-The admin uses Django's `TabularInline` for PropertyImages:
-- Add images directly on the property edit page
-- Set image order for gallery display
-- Edit image URLs and captions inline
-- Delete images without leaving the property page
+**Option 1: Upload Image File**
+1. Edit a property in admin
+2. Scroll to "Property images" section
+3. Click "Choose File" under "Image file"
+4. Select image from your computer
+5. Set image caption and order
+6. Save
 
-## Frontend Features
+**Option 2: Use External URL**
+1. Edit a property in admin
+2. Scroll to "Property images" section
+3. Enter URL in "Image url" field
+4. Set image caption and order
+5. Save
 
-### Homepage
-- Display all properties in a grid layout
-- Location-based search with autocomplete
-- AJAX-powered autocomplete (5 suggestions)
-- Pagination (5 properties per page)
-- Click on property to view details
+**Priority:** If both file and URL are provided, uploaded file takes priority.
 
-### Property Detail Page
-- Image gallery with slider
-- Left/Right arrow navigation
-- Keyboard arrow key support
-- Indicator dots for current image
-- Property details (beds, baths, price, etc.)
-- Location information
-- Back to properties link
+### Image Features in Admin
+- **Thumbnail Preview** - Small preview in property list
+- **Large Preview** - Full preview in edit form
+- **Image Source Label** - Shows "Uploaded File" or "External URL"
+- **Inline Editing** - Edit images without leaving property page
+- **Tabular Display** - Clean, organized layout
 
-### Autocomplete Functionality
-- Triggers after typing 2+ characters
-- 300ms debounce to reduce API calls
-- Shows location name with property count
-- Click to auto-fill and search
-- Closes when clicking outside
+## 🖼️ Frontend Features
 
-## Configuration
+### Homepage (`/`)
+- **Property Grid** - Responsive grid layout
+- **Location Search** - Search bar with autocomplete
+- **AJAX Autocomplete** - Live suggestions as you type
+  - Triggers after 2+ characters
+  - Shows 5 suggestions max
+  - 300ms debounce
+  - Shows location with property count
+- **Pagination** - 5 properties per page
+- **Click to View** - Click any property card for details
 
-### MEDIA_ROOT (User Uploads)
+### Property Detail Page (`/property/<id>/`)
+- **Image Gallery Slider**
+  - One image displayed at a time
+  - Left/Right arrow buttons
+  - Keyboard navigation (← →)
+  - Indicator dots
+  - Auto-loops through images
+- **Property Information**
+  - Type, bedrooms, bathrooms
+  - Max guests, price per night
+  - Full description
+- **Location Details**
+  - Location name, address
+  - City, state, country, zip
+  - Location description
+- **Back Button** - Return to property list
+
+### Search & Autocomplete
+- **What you can search:** City names, State names, Location names
+- **Examples:** "Miami", "Florida", "Beachfront Paradise"
+- **How it works:**
+  1. Type 2+ characters
+  2. Wait 300ms (debounce)
+  3. API returns 5 suggestions
+  4. Click suggestion to search
+  5. Press Enter to search current text
+
+## ⚙️ Configuration
+
+### Media Files (Uploaded Images)
+
 ```python
 # config/settings.py
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 ```
-Files uploaded through admin will be stored in the `media/` directory.
 
-### Pagination Settings
+**Storage Location:** `media/property_images/`
+
+**Access:** Uploaded images are served at `/media/property_images/filename.jpg`
+
+### Pagination
+
 ```python
 # config/settings.py
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5,
+    'PAGE_SIZE': 5,  # 5 items per page
 }
 ```
 
-### CORS Configuration
+### CORS (Development)
+
 ```python
 # config/settings.py
 CORS_ALLOW_ALL_ORIGINS = True  # For development only
 ```
 
-## CSV Import Command
+**Production:** Set specific allowed origins
 
-The project includes a custom management command to import property data from CSV.
+## 📊 CSV Import Command
 
-**Usage:**
+### Usage
+
 ```bash
 python manage.py import_csv <path_to_csv_file>
 ```
 
-**CSV Format:**
-The CSV should have the following columns:
-- property_id, property_name, property_type, bedrooms, bathrooms, max_guests, price_per_night, property_description
-- location_id, location_name, location_city, location_state, location_country, location_zip, location_latitude, location_longitude, location_description
-- image_ids (comma-separated), image_urls (comma-separated), image_captions (comma-separated)
+### CSV Format Required
 
-**What it does:**
-1. Clears existing data (PropertyImage, Property, Location)
-2. Creates Location records
-3. Creates Property records linked to locations
-4. Creates PropertyImage records for each property
-5. Reports success/failure for each operation
+The CSV must have these columns:
+- `property_id`, `property_name`, `property_type`, `bedrooms`, `bathrooms`, `max_guests`, `price_per_night`, `property_description`
+- `location_id`, `location_name`, `location_city`, `location_state`, `location_country`, `location_zip`, `location_latitude`, `location_longitude`, `location_description`
+- `image_ids` (comma-separated), `image_urls` (comma-separated), `image_captions` (comma-separated)
 
-## Image Credits
+### What It Does
 
-All images used in the sample data are from Unsplash (https://unsplash.com), a free stock photo platform.
+1. ✅ Clears existing data (PropertyImage, Property, Location)
+2. ✅ Creates Location records
+3. ✅ Creates Property records with location links
+4. ✅ Creates PropertyImage records for each property
+5. ✅ Reports success/errors for each operation
 
-**License:** Unsplash License (Free to use)
-- No attribution required
-- Free for commercial and non-commercial use
-- Images are representative and may not match exact property descriptions
+### Example CSV Row
 
-## Technology Stack
+```csv
+PROP001,Ocean View Villa,Villa,4,3,8,450,"Luxury villa...",LOC001,Beachfront Paradise,Miami Beach,Florida,USA,33139,25.7907,-80.1300,"Prime beachfront...","IMG001,IMG002,IMG003","https://...,https://...,https://...","Caption 1,Caption 2,Caption 3"
+```
 
-- **Backend:** Django 6.0+
-- **API:** Django REST Framework
+## 🛠️ Technology Stack
+
+- **Backend Framework:** Django 5.0+
+- **API Framework:** Django REST Framework
 - **Database:** SQLite3 (development)
+- **Image Processing:** Pillow
 - **Frontend:** Vanilla JavaScript (no frameworks)
 - **Styling:** Pure CSS (no frameworks)
-- **Image Hosting:** External URLs (Unsplash)
+- **Image Hosting:** Upload + External URLs supported
 
-## Development Notes
+## 🔒 Security Notes
 
-### Debug Mode
-The project runs in DEBUG mode by default. For production:
+### Development vs Production
+
+**Current Settings (Development):**
 ```python
-# config/settings.py
+DEBUG = True
+ALLOWED_HOSTS = ['*']
+SECRET_KEY = 'django-insecure-...'
+CORS_ALLOW_ALL_ORIGINS = True
+```
+
+**Production Settings (Required):**
+```python
 DEBUG = False
 ALLOWED_HOSTS = ['yourdomain.com']
+SECRET_KEY = os.environ.get('SECRET_KEY')  # Use environment variable
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = ['https://yourdomain.com']
 ```
 
-### Secret Key
-Change the secret key in production:
-```python
-# config/settings.py
-SECRET_KEY = 'your-production-secret-key'
-```
+### Database for Production
 
-### Database
-For production, consider using PostgreSQL:
+**Current:** SQLite3 (development only)
+
+**Recommended for Production:** PostgreSQL
+
 ```python
 DATABASES = {
     'default': {
@@ -322,36 +418,132 @@ DATABASES = {
 }
 ```
 
-## Troubleshooting
+### Static Files for Production
+
+```bash
+# Collect static files
+python manage.py collectstatic
+
+# Serve with nginx or whitenoise
+pip install whitenoise
+```
+
+## 🐛 Troubleshooting
 
 ### "no such table" error
+
 ```bash
 python manage.py makemigrations rentals
 python manage.py migrate
 ```
 
-### Port already in use
+### Pillow not installed
+
 ```bash
+pip install Pillow
+```
+
+### Port already in use
+
+```bash
+# Use different port
 python manage.py runserver 8001
 ```
 
 ### CSV import fails
-- Check CSV file path
-- Ensure CSV has correct column names
-- Verify data format matches expected types
+
+- ✅ Check CSV file path is correct
+- ✅ Ensure CSV has correct column names
+- ✅ Verify data types match model fields
+- ✅ Check for empty required fields
 
 ### Images not displaying
-- Check image URLs are accessible
-- Verify MEDIA_URL is configured
-- Check browser console for errors
 
-## License
+- ✅ Check `MEDIA_URL` and `MEDIA_ROOT` in settings
+- ✅ Verify image URLs are accessible
+- ✅ Check browser console for errors
+- ✅ Ensure uploaded images are in `media/property_images/`
+
+### Admin panel not loading images
+
+- ✅ Make sure Pillow is installed
+- ✅ Check media files are being served in development
+- ✅ Verify `urls.py` includes media URL patterns
+
+## 📷 Image Credits
+
+All sample images in the provided CSV are from [Unsplash](https://unsplash.com), a free stock photo platform.
+
+**License:** Unsplash License
+- ✅ Free to use for commercial and non-commercial purposes
+- ✅ No attribution required (but appreciated)
+- ✅ Cannot be sold as-is or in a wallpaper collection
+
+**Note:** Images are representative stock photos and may not exactly match property descriptions.
+
+## 📝 Development Workflow
+
+### Adding New Properties
+
+1. Go to admin panel
+2. Click "Properties" → "Add Property"
+3. Fill in property details
+4. Add location
+5. Add images (upload or URL)
+6. Set image order
+7. Save
+
+### Updating Properties
+
+1. Edit property in admin
+2. Modify fields as needed
+3. Add/remove/reorder images inline
+4. Save changes
+
+### Managing Locations
+
+1. Add locations before properties
+2. One location can have multiple properties
+3. Edit location details in admin
+
+## 🚀 Deployment Checklist
+
+Before deploying to production:
+
+- [ ] Set `DEBUG = False`
+- [ ] Configure `ALLOWED_HOSTS`
+- [ ] Use environment variables for `SECRET_KEY`
+- [ ] Set up PostgreSQL database
+- [ ] Configure CORS properly
+- [ ] Set up static file serving
+- [ ] Set up media file serving
+- [ ] Enable HTTPS
+- [ ] Configure backup strategy
+- [ ] Set up monitoring/logging
+- [ ] Test all functionality
+
+## 📚 Additional Resources
+
+- [Django Documentation](https://docs.djangoproject.com/)
+- [Django REST Framework](https://www.django-rest-framework.org/)
+- [Pillow Documentation](https://pillow.readthedocs.io/)
+
+## 📄 License
 
 This project is for educational/demonstration purposes.
 
-## Support
+## 🤝 Contributing
 
-For issues or questions, please check:
-1. Django documentation: https://docs.djangoproject.com/
-2. DRF documentation: https://www.django-rest-framework.org/
-3. Project structure and code comments
+This is a demonstration project. Feel free to use and modify as needed.
+
+## 📧 Support
+
+For Django-specific issues:
+- Check Django documentation
+- Review error messages carefully
+- Ensure all migrations are applied
+- Verify dependencies are installed
+
+---
+
+**Built with Django • REST Framework • Pillow • Vanilla JavaScript**

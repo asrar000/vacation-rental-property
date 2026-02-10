@@ -43,7 +43,9 @@
             });
     }
 
-    // Display properties
+    // UPDATED displayProperties function for home.html
+// Replace this function in your existing home.html
+
     function displayProperties(properties) {
         const propertyList = document.getElementById('property-list');
         
@@ -53,7 +55,8 @@
         }
         
         properties.forEach(property => {
-            const imageUrl = property.images.length > 0 ? property.images[0].image_url : '';
+            // UPDATED: Use display_url instead of image_url
+            const imageUrl = property.images.length > 0 ? property.images[0].display_url : '';
             
             const card = document.createElement('a');
             card.href = `/property/${property.property_id}/`;

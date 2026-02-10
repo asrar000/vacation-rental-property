@@ -109,7 +109,8 @@
     {% if property.images.all %}
     <div class="gallery-container">
         {% for image in property.images.all %}
-        <img src="{{ image.image_url }}" 
+        {# UPDATED: Use get_image_url method to get the correct URL #}
+        <img src="{{ image.get_image_url }}" 
              alt="{{ image.image_caption }}" 
              class="gallery-image {% if forloop.first %}active{% endif %}"
              data-index="{{ forloop.counter0 }}">

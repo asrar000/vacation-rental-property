@@ -27,8 +27,52 @@
             padding: 20px 0;
             margin-bottom: 30px;
         }
+        header .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
         header h1 {
-            text-align: center;
+            margin: 0;
+        }
+        header h1 a {
+            color: white;
+            text-decoration: none;
+        }
+        header h1 a:hover {
+            color: #ddd;
+        }
+        /* Navigation buttons container */
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+        /* Common button style */
+        .nav-button {
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.3s;
+            display: inline-block;
+        }
+        /* Admin Panel button - Green */
+        .admin-link {
+            background: #4CAF50;
+        }
+        .admin-link:hover {
+            background: #45a049;
+        }
+        /* API button - Blue */
+        .api-link {
+            background: #2196F3;
+        }
+        .api-link:hover {
+            background: #0b7dda;
         }
         .search-box {
             background: #fff;
@@ -36,6 +80,7 @@
             margin-bottom: 30px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
         }
         .search-box input {
             width: 100%;
@@ -52,14 +97,21 @@
             background: white;
             max-width: 1160px;
             width: calc(100% - 40px);
+            left: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .autocomplete-items div {
-            padding: 10px;
+            padding: 12px;
             cursor: pointer;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #f0f0f0;
         }
         .autocomplete-items div:hover {
             background-color: #f0f0f0;
+        }
+        .autocomplete-item-details {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
         }
         .property-grid {
             display: grid;
@@ -135,20 +187,17 @@
             text-decoration: none;
             color: inherit;
         }
-        /* Add this CSS to your existing base.html <style> section */
-
-        .autocomplete-item-details {
-            font-size: 12px;
-            color: #666;
-            margin-top: 4px;
-        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <header>
-        <div class="container">
-            <h1><a href="/" style="color: white;">Vacation Rentals</a></h1>
+        <div class="header-content">
+            <h1><a href="/">Vacation Rentals</a></h1>
+            <div class="nav-links">
+                <a href="/api/properties/" class="nav-button api-link">API</a>
+                <a href="/admin/" class="nav-button admin-link">Admin Panel</a>
+            </div>
         </div>
     </header>
     
